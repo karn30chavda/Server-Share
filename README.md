@@ -45,7 +45,7 @@ Browse, search, sort, and play videos stored on your machine from a sleek web in
 
 | -------- | ------------------------------------- |
 
-| Backend  | Node.js, Express, CORS, fs, mime      |
+| Backend  | Node.js, Express, CORS, fs, mime, Nodemon      |
 
 | Frontend | React, Axios, Lucide React Icons, CSS |
 
@@ -185,7 +185,7 @@ server-share/
 
    ```sh
 
-   npm run dev
+   npm run dev -- --host
 
    ```
 
