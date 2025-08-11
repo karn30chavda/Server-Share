@@ -30,13 +30,18 @@ Browse, search, sort, and play videos stored on your machine from a sleek web in
 
 ```
 server-share/
-├── backend/
-│   ├── server.js        # Express backend API and video streaming
-├── frontend/
+├── Backend/
 │   ├── src/
-│   │   ├── App.jsx      # Main React app component
-│   │   ├── index.css    # Styling for app
-│   ├── package.json     # Frontend dependencies & scripts
+│   │   └── server.js        # Express backend API and video streaming
+│   └── package.json
+├── Frontend/
+│   ├── src/
+│   │   ├── App.jsx          # Main React app component
+│   │   ├── index.css        # Styling for app
+│   │   └── main.jsx
+│   ├── public/
+│   ├── package.json         # Frontend dependencies & scripts
+│   └── vite.config.js
 ├── README.md
 ```
 
@@ -46,7 +51,7 @@ server-share/
 
 1. Make sure you have Node.js installed (v14+ recommended)
 
-2. Change the `baseDir` variable in `server.js` to your video folder path:
+2. Change the `baseDir` variable in `src/server.js` to your video folder path:
 
    ```js
    const baseDir = "C:\\Users\\Acer\\Desktop\\TELECAST";
@@ -55,12 +60,12 @@ server-share/
 3. Install dependencies for backend:
 
    ```sh
-   npm install express cors mime
+   npm install
    ```
 
 4. Run backend server:
    ```sh
-   node server.js
+   npm run dev
    ```
 
 **Backend API endpoints:**
@@ -75,7 +80,7 @@ server-share/
 1. Navigate to frontend folder:
 
    ```sh
-   cd frontend
+   cd Frontend
    ```
 
 2. Install frontend dependencies:
@@ -84,12 +89,12 @@ server-share/
    npm install
    ```
 
-3. Run the React app (using Vite or CRA):
+3. Run the React app (using Vite):
    ```sh
    npm run dev
    ```
 
-Frontend fetches videos from `http://192.168.0.105:5000/videos`.
+Frontend fetches videos from `http://<YOUR_BACKEND_IP>:5000/videos`.
 Update this IP in `App.jsx` if your backend runs elsewhere.
 
 ---
@@ -107,10 +112,10 @@ Update this IP in `App.jsx` if your backend runs elsewhere.
 
 **List View**
 
-| #   | Name        | Play   |
-| --- | ----------- | ------ |
-| 1   | Sample1.mp4 | [Play] |
-| 2   | Sample2.mkv | [Play] |
+| #   | Name        | Play |
+| --- | ----------- | ---- |
+| 1   | Sample1.mp4 | ▶️   |
+| 2   | Sample2.mkv | ▶️   |
 
 **Detail View**
 Grid cards with video thumbnails and play buttons.
@@ -119,4 +124,21 @@ Grid cards with video thumbnails and play buttons.
 
 ## 💡 Tips
 
-- Ensure your `baseDir` folder has read
+- Ensure your `baseDir` folder has read permissions.
+- Use absolute path for Windows (`C:\\...`) or Linux/Mac (`/home/user/videos`).
+- To access from other devices, ensure backend IP and port are reachable on your network.
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+Feel free to fork and send PRs.
+
+---
+
+## 📜 License
+
+MIT License © 2025 Karan
+
+Made with ❤️
