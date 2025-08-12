@@ -13,67 +13,100 @@ app.use(cors());
 
 const baseDir = "C:\\Users\\Acer\\Desktop\\TELECAST";
 
-// List videos
-app.get("/videos", (req, res) => {
-  fs.readdir(baseDir, (err, files) => {
+const allowedCategories = {
+  VIDEOS: ["mp4", "webm", "ogg", "mkv"],
+  IMAGES: ["jpg", "jpeg", "png", "gif", "bmp"],
+  PDF: ["pdf"],
+  MUSIC: ["mp3", "wav", "aac"],
+  OTHERS: [], // files not in above exts
+};
+
+app.get("/files/:category", (req, res) => {
+  const category = req.params.category.toUpperCase();
+
+  if (!allowedCategories.hasOwnProperty(category)) {
+    return res.status(400).json({ error: "Invalid category" });
+  }
+
+  const folderPath = path.join(baseDir, category);
+
+  fs.readdir(folderPath, (err, files) => {
     if (err) {
       console.error("Cannot read directory:", err);
       return res.status(500).json({ error: "Cannot read directory" });
     }
 
-    const videos = files
-      .filter(
-        (f) =>
-          f.endsWith(".mp4") ||
-          f.endsWith(".webm") ||
-          f.endsWith(".ogg") ||
-          f.endsWith(".mkv")
-      )
-      .map((file) => ({
-        name: file,
-        url: `/video/${encodeURIComponent(file)}`,
-      }));
+    let filteredFiles = [];
 
-    res.json(videos);
+    if (category === "OTHERS") {
+      const allExts = Object.values(allowedCategories)
+        .flat()
+        .map((ext) => ext.toLowerCase());
+
+      filteredFiles = files.filter((f) => {
+        const ext = path.extname(f).slice(1).toLowerCase();
+        return !allExts.includes(ext);
+      });
+    } else {
+      filteredFiles = files.filter((f) => {
+        const ext = path.extname(f).slice(1).toLowerCase();
+        return allowedCategories[category].includes(ext);
+      });
+    }
+
+    const response = filteredFiles.map((file) => ({
+      name: file,
+      url: `/file/${category}/${encodeURIComponent(file)}`,
+    }));
+
+    res.json(response);
   });
 });
 
-// Stream video with range (audio+video working)
-app.get("/video/:filename", (req, res) => {
-  const filePath = path.join(baseDir, req.params.filename);
+app.get("/file/:category/:filename", (req, res) => {
+  const category = req.params.category.toUpperCase();
+  const filename = req.params.filename;
+
+  if (!allowedCategories.hasOwnProperty(category)) {
+    return res.status(400).json({ error: "Invalid category" });
+  }
+
+  const filePath = path.join(baseDir, category, filename);
 
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ error: "File not found" });
   }
 
-  const stat = fs.statSync(filePath);
-  const fileSize = stat.size;
-  const range = req.headers.range;
+  if (category === "VIDEOS") {
+    const stat = fs.statSync(filePath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+    const contentType = mime.getType(filePath) || "application/octet-stream";
 
-  const contentType = mime.getType(filePath) || "application/octet-stream";
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunkSize = end - start + 1;
+      const file = fs.createReadStream(filePath, { start, end });
 
-  if (range) {
-    const parts = range.replace(/bytes=/, "").split("-");
-    const start = parseInt(parts[0], 10);
-    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      res.writeHead(206, {
+        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunkSize,
+        "Content-Type": contentType,
+      });
 
-    const chunkSize = end - start + 1;
-    const file = fs.createReadStream(filePath, { start, end });
-
-    res.writeHead(206, {
-      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-      "Accept-Ranges": "bytes",
-      "Content-Length": chunkSize,
-      "Content-Type": contentType,
-    });
-
-    file.pipe(res);
+      file.pipe(res);
+    } else {
+      res.writeHead(200, {
+        "Content-Length": fileSize,
+        "Content-Type": contentType,
+      });
+      fs.createReadStream(filePath).pipe(res);
+    }
   } else {
-    res.writeHead(200, {
-      "Content-Length": fileSize,
-      "Content-Type": contentType,
-    });
-    fs.createReadStream(filePath).pipe(res);
+    res.sendFile(filePath);
   }
 });
 
