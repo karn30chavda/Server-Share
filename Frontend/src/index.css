@@ -20,6 +20,7 @@
   --transition: all 0.3s ease;
   --border-radius: 12px;
   --sidebar-width: 280px;
+  --header-height: 80px; /* Added for sticky header */
 }
 
 body,
@@ -166,6 +167,28 @@ html,
   padding: 1rem 0;
   flex-wrap: wrap;
   gap: 1rem;
+  transition: var(--transition);
+}
+
+/* Sticky header styles */
+@media (max-width: 768px) {
+  .header {
+    position: sticky;
+    top: -100%; /* Start off-screen */
+    transform: translateY(0);
+    z-index: 100;
+    background: var(--light-gray);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Class to apply when scrolling */
+  .header.sticky {
+    top: 0;
+    transform: translateY(100%); /* Move into view */
+  }
 }
 
 .search-box {
@@ -601,8 +624,9 @@ content-header p {
 
   .sidebar {
     width: 100%;
-    position: sticky;
-    top: 0;
+    position: static;
+    /* top: 0; */
+    /* z-index: 1000; */
   }
 
   .main-content {

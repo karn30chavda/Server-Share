@@ -36,6 +36,9 @@ function App() {
   const categoryMenuRef = useRef();
   const audioRef = useRef(null);
   const videoRefs = useRef({});
+  const headerRef = useRef(null);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     setIsLoading(true);
@@ -94,6 +97,29 @@ function App() {
       });
     }
   }, [files, category]);
+
+  // Hide/show header on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY <= 0) {
+        // At top of page, show header
+        setIsHeaderVisible(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        // Scrolling down, hide header
+        setIsHeaderVisible(false);
+      } else {
+        // Scrolling up, show header
+        setIsHeaderVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const getMimeType = (fileName) => {
     if (fileName.endsWith(".mp4")) return "video/mp4";
@@ -206,7 +232,10 @@ function App() {
       {/* Main Content */}
       <main className="main-content">
         {/* Header */}
-        <header className="header">
+        <header
+          ref={headerRef}
+          className={`header ${isHeaderVisible ? "visible" : "hidden"}`}
+        >
           <div className="search-box">
             <Search className="search-icon" />
             <input
